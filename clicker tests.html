@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 
@@ -5,7 +6,7 @@
   <title>New Tab</title>
   <link rel="stylesheet" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <link rel="icon" href="images/chrome.png" type="image/png">
+  <link rel="icon" href="images/chrome5.png" type="image/png">
 
 </head>
 
@@ -16,6 +17,7 @@
         <span id="score">0</span> cookie <br>
         <span id="scorepersecond">0</span> cookies per second
       </div>
+      
       <button onclick="resetGame()">Reset Game</button>
       <br>
       <div class="clickerContainer unselectable">
@@ -25,6 +27,8 @@
   </div>
 
   <div class="sectionRight unselectable">
+
+    
     <table class="shopButton unselectable" onclick="buyCursor()">
       <tr>
         <td id="image"><img src="images/clickcursor.png"></td>
@@ -65,6 +69,16 @@
         <td id="amount"><span id="mines">0</span></td>
       </tr>
     </table>
+    <table class="shopButton unselectable" onclick="buyBuilding()">
+      <tr>
+        <td id="image"><img src="images/building.png"></td>
+        <td id="nameAndCost">
+          <p>Building  </p>
+          <p><span id="buildingCost">20,000</span> cookies</p>
+        </td>
+        <td id="amount"><span id="buildings">0</span></td>
+      </tr>
+    </table>
     <div id="upgrades">
       <h3>Upgrades!</h3>
       <button onclick="buyBlueCursor()" title="Click this to buy 2x clicks. (Stacks)">
@@ -72,6 +86,48 @@
       </button>
     </div>
   </div>
+
+
+  <style>
+    .upgrade-button {
+      margin: 5px; /* Add some spacing between buttons */
+      display: block; /* Make the buttons display as blocks to stack them vertically */
+    }
+  </style>
+
+<div>
+    <button class="upgrade-button" onclick="purchaseUpgrade('cursor')" title="Enhance the click production of Cursors (x2 click production).">
+      Buy Cursor Upgrade (Cost: <span id="cursorUpgradeCost">100</span> cookies)
+    </button>
+    
+    
+    <button class="upgrade-button" onclick="purchaseUpgrade('grandma')" title="Increase the baking efficiency of Grandmas (x2 grandma production).">
+      Buy Grandma Upgrade 
+      <p><span id="grandmaUpgradeCost">500</span> cookies</p>
+      <p><span id="grandmaUpgradeLevel">0</span></p>
+
+    </button>
+    
+    <button class="upgrade-button" onclick="purchaseUpgrade('farm')" title="Improve the productivity of Farms (x2 farm production).">
+      Buy Farm Upgrade <p><span id="farmUpgradeCost">2000</span> cookies</p>
+      <p><span id="farmUpgradeLevel">0</span></p>
+    </button>
+    
+    <button class="upgrade-button" onclick="purchaseUpgrade('mine')" title="Boost the output of Mines (x2 mine production).">
+      Buy Mine Upgrade <p><span id="mineUpgradeCost">10000</span> cookies</p>
+      <p><span id="mineUpgradeLevel">0</span></p>
+    </button>
+
+    <button class="upgrade-button" onclick="purchaseUpgrade('building')" title="Boost income of buildings">
+        <p>Building</p>
+        <p><span id="buildingUpgradeCost">56000</span> cookies</p>
+        <p><span id="buildingUpgradeLevel">0</span></p>
+      </button>
+      
+  </div>
+
+
+  
 
   <script>
     var score = 0;
@@ -84,6 +140,8 @@
     var farms = 0;
     var mines = 0;
     var mineCost = 5000;
+    var buildingCost = 20000;
+    var buildings = 0
 
     var clickValue = 1;
 
@@ -142,8 +200,21 @@
       }
     }
 
+    function buyBuilding() {
+      if (score >= buildingCost) {
+        score = score - buildingCost;
+        buildings = buildings + 1;
+        buildingCost = Math.round(buildingCost * 1.15);
+
+        document.getElementById("score").innerHTML = score;
+        document.getElementById("buildingCost").innerHTML = buildingCost;
+document.getElementById("buildings").innerHTML = buildings;
+        updateScorePerSecond();
+      }
+    }
+
     function updateScorePerSecond() {
-      var scorePerSecond = cursors + (grandmas * 5) + (farms * 20) + (mines * 100);
+      var scorePerSecond = cursors + (grandmas * GrandmaUpgradeProd) + (farms * 20) + (mines * 100) + (buildings * 1000);
       document.getElementById("scorepersecond").innerHTML = scorePerSecond;
     }
 
@@ -166,6 +237,8 @@
         blueCursorCost: blueCursorCost,
         blueCursors: blueCursors,
         clickValue: clickValue,
+        buildings: buildings,
+        buildingCost: buildingCost,
       };
       localStorage.setItem("gameSave", JSON.stringify(gameSave));
     }
@@ -185,6 +258,9 @@
         if (typeof savedGame.blueCursorCost !== "undefined") blueCursorCost = savedGame.blueCursorCost;
         if (typeof savedGame.blueCursors !== "undefined") blueCursors = savedGame.blueCursors;
         if (typeof savedGame.clickValue !== "undefined") clickValue = savedGame.clickValue;
+        if (typeof savedGame.buildingCost !== "undefined") buildingCost = savedGame.buildingCost; 
+        if (typeof savedGame.buildings !== "undefined") buildings = savedGame.buildings;
+
       }
     }
 
@@ -200,6 +276,11 @@
       document.getElementById("farms").innerHTML = farms;
       document.getElementById("mineCost").innerHTML = mineCost;
       document.getElementById("mines").innerHTML = mines;
+      document.getElementById("buildings").innerHTML = buildings;
+      document.getElementById("buildingCost").innerHTML = buildingCost;
+      document.getElementById("blueCursors").innerHTML = blueCursors;
+      document.getElementById("blueCursorCost").innerHTML = blueCursorCost;
+      
     };
 
     document.addEventListener("keydown", function (event) {
@@ -208,24 +289,47 @@
       saveGame();
     }, false);
 
-    function resetGame() {
-      if (confirm("Are you sure you want to reset your game?")) {
-        localStorage.clear();
-        location.reload();
-      }
-    }
+    document.addEventListener("keydown", function (event) {
+      if (event.ctrlKey && event.which == 82)
+      saveGame();
+    }, false);
 
+    function resetGame() {
+  if (confirm("Are you sure you want to reset your game? This will clear all progress.")) {
+    // Reset game variables
+    score = 0;
+    cursors = 0;
+    cursorCost = 15;
+    grandmas = 0;
+    grandmaCost = 100;
+    farms = 0;
+    farmCost = 900;
+    mines = 0;
+    mineCost = 5000;
+    buildings = 0;
+    buildingCost = 20000;
+    
+    // Reset other variables as needed
+    
+    // Clear local storage
+    localStorage.clear();
+    
+    // Reload the page
+    location.reload();
+  }
+}
     setInterval(function () {
       score = score + cursors;
       score = score + (farms * 20);
       score = score + (grandmas * 5);
       score = score + (mines * 100);
+      score = score + (buildings * 1000)
       document.getElementById("score").innerHTML = score;
     }, 1000); // 1000ms = 1s
 
     setInterval(function () {
       saveGame();
-    }, 30000);
+    }, 5000);
 
     function secretCoolHacks69420() {
       cursors = 69419;
@@ -314,6 +418,99 @@
                 window.location.href = 'https://classroom.google.com/c/NjIwNTM1Mjg5MjIz'; // Replace with the URL you want to redirect to
             }
         });
+
+// Define upgrade variables
+var cursorUpgradeCost = 100;
+var grandmaUpgradeCost = 500;
+var farmUpgradeCost = 2000;
+var mineUpgradeCost = 10000;
+var buildingUpgradeCost = 56000
+
+var cursorUpgradeLevel = 0;
+var grandmaUpgradeLevel = 0;
+var farmUpgradeLevel = 0;
+var mineUpgradeLevel = 0;
+var buildingUpgradeLevel = 0;
+var GrandmaUpgradeProd = 5
+var BuildingUpgradeProd = 7500
+
+// Upgrade functions
+function buyCursorUpgrade() {
+  if (score >= cursorUpgradeCost) {
+    score -= cursorUpgradeCost;
+    cursorUpgradeCost *= 2; // Increase cost for the next upgrade
+    cursorUpgradeLevel++;
+    cursors += 5; // Increase click production
+    updateScorePerSecond();
+  }
+}
+
+function buyGrandmaUpgrade() {
+  if (score >= grandmaUpgradeCost) {
+    score -= grandmaUpgradeCost;
+    grandmaUpgradeCost *= 9;
+    grandmaUpgradeLevel++;
+    GrandmaUpgradeProd += 5; // Increase grandma production
+    updateScorePerSecond();
+document.getElementById("score").innerHTML = score;
+document.getElementById("grandmaUpgradeCost").innerHTML = grandmaUpgradeCost;
+document.getElementById("grandmaUpgradeLevel").innerHTML = grandmaUpgradeLevel;
+  }
+}
+
+function buyFarmUpgrade() {
+  if (score >= farmUpgradeCost) {
+    score -= farmUpgradeCost;
+    farmUpgradeCost *= 2;
+    farmUpgradeLevel++;
+    farms += 10; // Increase farm production
+     updateScorePerSecond();
+  }
+}
+
+function buyMineUpgrade() {
+  if (score >= mineUpgradeCost) {
+    score -= mineUpgradeCost;
+    mineUpgradeCost *= 2;
+    mineUpgradeLevel++;
+    mines += 20; // Increase mine production
+    updateScorePerSecond();
+  }
+}
+
+function buyBuildingUpgrade() {
+    if (score >= buildingUpgradeCost) {
+        score -= buildingUpgradeCost;
+        buildingUpgradeCost *= 2;
+        buildingUpgradeLevel++;
+        BuildingUpgradeProd ++;
+
+        // Update the relevant elements
+        document.getElementById("score").innerHTML = score;
+        document.getElementById("buildingUpgradeCost").innerHTML = buildingUpgradeCost;
+        document.getElementById("buildingUpgradeLevel").innerHTML = buildingUpgradeLevel;
+        updateScorePerSecond();
+    }
+}
+
+// Call these functions when upgrades are purchased
+function purchaseUpgrade(upgradeType) {
+  if (upgradeType === "cursor") {
+    buyCursorUpgrade();
+  } else if (upgradeType === 'grandma') {
+    buyGrandmaUpgrade();
+  } else if (upgradeType === 'farm') {
+    buyFarmUpgrade();
+  } else if (upgradeType === 'mine') {
+    buyMineUpgrade();
+  } else if (upgradeType === 'building') {
+    buyBuildingUpgrade();
+  }
+}
+
+
+
+
   </script>
 </body>
 
